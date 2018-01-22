@@ -29,20 +29,17 @@ func writeLinkHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addLink(w http.ResponseWriter, r *http.Request) {
-	db, _ := sql.Open("sqlite3", "webdata.db")
 	if r.Method == "POST" {
-		r.ParseForm()
-		title := r.PostFormValue("title")
-		description := r.PostFormValue("description")
-		url := r.PostFormValue("url")
-		tx, _ := db.Begin()
-		stmt, _ := tx.Prepare("insert into links (title, description, url) values (?, ?, ?)")
-		_, err := stmt.Exec(title, description, url)
+		db, _ := sql.Open("sqlite3", "webdata.db")
+		title := r.FormValue("title")
+		description := r.FormValue("description")
+		url := r.FormValue("url")
+		_, err := db.Exec("insert into links (title, description, url) values (?, ?, ?)", title, description, url)
 		if err != nil {
 			fmt.Fprintf(w, err.Error())
 		}
-		tx.Commit()
 		db.Close()
+		http.Redirect(w, r, "/", 301)
 	} else {
 		t, err := template.ParseFiles("templates/writelink.html")
 		if err != nil {
@@ -53,10 +50,16 @@ func addLink(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func linksHandler(w http.ResponseWriter, r *http.Request) {
+	db, _ := sql.Open("sqlite3", "webdata.db")
+
+}
+
 func main() {
 	fmt.Println("Listening on port :8000")
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/writelink", writeLinkHandler)
 	http.HandleFunc("/addlink", addLink)
+	http.HandleFunc("/links", linksHandler)
 	http.ListenAndServe(":8000", nil)
 }
