@@ -1,12 +1,21 @@
 package main
 
-import(
+import (
+	"database/sql"
 	"fmt"
-	"net/http"
 	"html/template"
+	"net/http"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
-func indexHandler(w http.ResponseWriter, r *http.Request){
+var (
+	db, _    = sql.Open("sqlite3", "cache/rakamakasfo.db")
+	createDB = "create table if not exist links (title text, description text, url text)"
+)
+
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+
 	t, err := template.ParseFiles("templates/index.html")
 	if err != nil {
 		fmt.Fprintf(w, err.Error())
@@ -15,21 +24,37 @@ func indexHandler(w http.ResponseWriter, r *http.Request){
 	t.ExecuteTemplate(w, "index", nil)
 }
 
-func writePostHandler(w http.ResponseWriter, r *http.Request){
-	t, err := template.ParseFiles("templates/writepost.html")
+func writeLinkHandler(w http.ResponseWriter, r *http.Request) {
+	t, err := template.ParseFiles("templates/writelink.html")
 	if err != nil {
 		fmt.Fprintf(w, err.Error())
 	}
 
-	t.ExecuteTemplate(w, "writepost", nil)
+	t.ExecuteTemplate(w, "writelink", nil)
 }
 
+func addLinkHandler(w http.ResponseWriter, r *http.Request) {
 
+	title := r.FormValue("title")
+	description := r.FormValue("description")
+	url := r.FormValue("url")
 
-func main()  {
+	db.Exec(createDB)
+	tx, _ := db.Begin()
+	stmt, _ := tx.Prepare("insert into links (title, description, url) values (?, ?, ?)")
+	_, err := stmt.Exec(title, description, url)
+	if err != nil {
+		fmt.Fprintf(w, err.Error())
+	}
+	tx.Commit()
+	db.Close()
+}
+
+func main() {
 	fmt.Println("Listening on port :8000")
 	http.HandleFunc("/", indexHandler)
-	http.HandleFunc("/writepost", writePostHandler)
+	http.HandleFunc("/writelink", writeLinkHandler)
+	http.HandleFunc("/addlink", addLinkHandler)
 	http.ListenAndServe(":8000", nil)
 
 }
