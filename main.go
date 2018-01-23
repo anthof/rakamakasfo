@@ -11,7 +11,7 @@ import (
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 
-	t, err := template.ParseFiles("templates/index.html")
+	t, err := template.ParseFiles("templates/index.html", "templates/header.html", "templates/footer.html")
 	if err != nil {
 		fmt.Fprintf(w, err.Error())
 	}
@@ -20,7 +20,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func writeLinkHandler(w http.ResponseWriter, r *http.Request) {
-	t, err := template.ParseFiles("templates/writelink.html")
+	t, err := template.ParseFiles("templates/writelink.html", "templates/header.html", "templates/footer.html")
 	if err != nil {
 		fmt.Fprintf(w, err.Error())
 	}
@@ -41,7 +41,7 @@ func addLink(w http.ResponseWriter, r *http.Request) {
 		db.Close()
 		http.Redirect(w, r, "/", 301)
 	} else {
-		t, err := template.ParseFiles("templates/writelink.html")
+		t, err := template.ParseFiles("templates/writelink.html", "templates/header.html", "templates/footer.html")
 		if err != nil {
 			fmt.Fprintf(w, err.Error())
 		}
@@ -50,16 +50,16 @@ func addLink(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func linksHandler(w http.ResponseWriter, r *http.Request) {
-	db, _ := sql.Open("sqlite3", "webdata.db")
+//func linksHandler(w http.ResponseWriter, r *http.Request) {
+//db, _ := sql.Open("sqlite3", "webdata.db")
 
-}
+//}
 
 func main() {
 	fmt.Println("Listening on port :8000")
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/writelink", writeLinkHandler)
 	http.HandleFunc("/addlink", addLink)
-	http.HandleFunc("/links", linksHandler)
+	//http.HandleFunc("/links", linksHandler)
 	http.ListenAndServe(":8000", nil)
 }
