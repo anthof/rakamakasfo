@@ -10,9 +10,9 @@ import (
 )
 
 type Link struct {
-	id    int
-	title string
-	url   string
+	Id    int
+	Title string
+	Url   string
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -56,8 +56,22 @@ func addLink(w http.ResponseWriter, r *http.Request) {
 }
 
 func linksHandler(w http.ResponseWriter, r *http.Request) {
-	//db, _ := sql.Open("sqlite3", "webdata.db")
+	db, _ := sql.Open("sqlite3", "webdata.db")
+	rows, _ := db.Query("select * from links")
+	defer rows.Close()
+	links := make([]*Link, 0)
 
+	for rows.Next() {
+		link := new(Link)
+		err := rows.Scan(&link.Id, &link.Title, &link.Url)
+		if err != nil {
+			fmt.Fprintf(w, err.Error())
+		}
+		links = append(links, link)
+
+	}
+	t, _ := template.ParseFiles("templates/links.html", "templates/header.html", "templates/footer.html")
+	t.ExecuteTemplate(w, "links", links)
 }
 
 func main() {

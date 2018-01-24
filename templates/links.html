@@ -1,0 +1,15 @@
+{{ define "links" }}
+{{ template "header" }}
+
+<ul>
+
+	{{ range $key , $value := . }}
+
+	<li><a target="_blank" href="{{ $value.Url }}">{{ $value.Title }}</a></li>
+
+	{{ end }}
+
+</ul>
+
+{{ template "footer" }}
+{{ end }}
