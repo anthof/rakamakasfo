@@ -3,7 +3,7 @@
 
 <ul>
 
-	{{ range $key , $value := . }}
+	{{ range $_ , $value := . }}
 
 	<li><a target="_blank" href="{{ $value.Url }}">{{ $value.Title }}</a></li>
 
