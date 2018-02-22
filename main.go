@@ -74,9 +74,42 @@ func linksHandler(w http.ResponseWriter, r *http.Request) {
 	t.ExecuteTemplate(w, "links", links)
 }
 
+func saveRegistrationHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		db, _ := sql.Open("sqlite3", "users.db")
+		login := r.FormValue("login")
+		password := r.FormValue("password")
+		_, err := db.Exec("insert into users (login, password) values (?, ?)", login, password)
+		if err != nil {
+			fmt.Fprintf(w, err.Error())
+		}
+		db.Close()
+		http.Redirect(w, r, "/", 301)
+	} else {
+		t, err := template.ParseFiles("templates/registration.html", "templates/header.html", "templates/footer.html")
+		if err != nil {
+			fmt.Fprintf(w, err.Error())
+		}
+
+		t.ExecuteTemplate(w, "registration", nil)
+	}
+}
+
+func registrationHandler(w http.ResponseWriter, r *http.Request) {
+	t, err := template.ParseFiles("templates/registration.html", "templates/header.html", "templates/footer.html")
+	if err != nil {
+		fmt.Fprintf(w, err.Error())
+	}
+
+	t.ExecuteTemplate(w, "registration", nil)
+}
+
 func main() {
 	fmt.Println("Listening on port :8000")
+	//mux := http.NewServeMux()
 	http.HandleFunc("/", indexHandler)
+	http.HandleFunc("/registration", registrationHandler)
+	http.HandleFunc("/saveregistration", saveRegistrationHandler)
 	http.HandleFunc("/writelink", writeLinkHandler)
 	http.HandleFunc("/addlink", addLink)
 	http.HandleFunc("/links", linksHandler)
