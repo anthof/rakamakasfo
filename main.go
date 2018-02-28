@@ -6,6 +6,8 @@ import (
 	"html/template"
 	"net/http"
 
+	"github.com/astaxie/session"
+	_ "github.com/astaxie/session/providers/memory"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -104,12 +106,43 @@ func registrationHandler(w http.ResponseWriter, r *http.Request) {
 	t.ExecuteTemplate(w, "registration", nil)
 }
 
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+	t, err := template.ParseFiles("templates/login.html", "templates/header.html", "templates/footer.html")
+	if err != nil {
+		fmt.Fprintf(w, err.Error())
+	}
+
+	t.ExecuteTemplate(w, "login", nil)
+}
+
+func saveLoginHandler(w http.ResponseWriter, r *http.Request) {
+	sess := globalSessions.SessionStart(w, r)
+	r.ParseForm()
+	if r.Method == "GET" {
+		t, _ := template.ParseFiles("login.html")
+		w.Header().Set("Content-Type", "text/html")
+		t.Execute(w, sess.Get("login"))
+	} else {
+		sess.Set("username", r.Form["login"])
+		http.Redirect(w, r, "/", 302)
+	}
+}
+
+var globalSessions *session.Manager
+
+func init() {
+	globalSessions, _ = session.NewManager("memory", "gosessionid", 3600)
+	go globalSessions.GC()
+}
+
 func main() {
 	fmt.Println("Listening on port :8000")
 	//mux := http.NewServeMux()
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/registration", registrationHandler)
+	http.HandleFunc("/login", loginHandler)
 	http.HandleFunc("/saveregistration", saveRegistrationHandler)
+	http.HandleFunc("/savelogin", saveLoginHandler)
 	http.HandleFunc("/writelink", writeLinkHandler)
 	http.HandleFunc("/addlink", addLink)
 	http.HandleFunc("/links", linksHandler)
